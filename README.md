@@ -14,7 +14,10 @@ It's not much, but it works… 🫠…
 - Runs in Bun (server) and the browser
 - TypeScript‑first with a simple, boolean result
 - Uses UA‑CH (`navigator.userAgentData?.mobile`) when available
-- Works with `Request` objects or raw user‑agent strings
+- Works with input types:
+  - Bun `Request` objects
+  - Node `http.IncomingMessage` objects
+  - Raw User‑Agent strings
 - Zero dependencies, tiny and fast (compiled once)
 
 ## Requirements
@@ -31,65 +34,58 @@ bun add bun-is-mobile
 ## Quick Start
 
 ```ts
+// Browser…
 import isMobile from 'bun-is-mobile';
 
-// Bun server: branch responses by device…
+const onMobile = isMobile();
+
+if (onMobile) {
+  // Do stuff…
+}
+```
+
+```ts
+// Bun server…
+import isMobile from 'bun-is-mobile';
+
 Bun.serve({
   fetch(request: Request) {
-    return new Response(isMobile(request) ? 'Hello, mobile!' : 'Hello, desktop!');
+    const onMobile = isMobile(request);
+
+    return new Response(onMobile ? 'Hello, mobile!' : 'Hello, desktop!');
   },
 });
 ```
 
 ```ts
-// Browser: detect the current device…
+// Node server…
+import { createServer } from 'http';
 import isMobile from 'bun-is-mobile';
 
-if (isMobile()) {
-  // mobile‑specific UI…
-}
+createServer((request, response) => {
+  const onMobile = isMobile(request);
+
+  response.statusCode = 200;
+  response.end(onMobile ? 'Hello, mobile!' : 'Hello, desktop!');
+
+  return;
+}).listen(3000);
 ```
 
 ## API Highlights
 
-- Default export: `(input?: Request | string) => boolean`
+- Default export: `(input?: Request | http.IncomingMessage | string) => boolean`
   - `Request` (Bun/Fetch) – reads the `user-agent` header
-  - `string` – pass any UA string directly
+  - `http.IncomingMessage` (Node/Bun Node-compat) – reads the `user-agent` header
+  - `string` – pass any User-Agent string directly
   - `undefined` – uses `navigator.userAgentData?.mobile` and `navigator.userAgent` (browser‑only)
-
-## Examples
-
-```ts
-// Using a Request (recommended on the server)…
-import isMobile from 'bun-is-mobile';
-
-export function deviceClass(request: Request) {
-  return isMobile(request) ? 'mobile' : 'desktop';
-}
-```
-
-```ts
-// Using a raw user‑agent string…
-import isMobile from 'bun-is-mobile';
-
-const userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
-
-console.log(isMobile(userAgent)); // true…
-```
-
-```ts
-// Browser runtime (no args)…
-import isMobile from 'bun-is-mobile';
-
-const onMobile = isMobile();
-```
 
 ## Notes
 
 - Regex patterns adapted from [Detect Mobile Browsers](http://detectmobilebrowsers.com/).
 
 - User-Agent detection is heuristic by nature; prefer responsive design when possible. UA‑CH is used when present to reduce false positives.
-- When calling without an argument, use it only in environments where `navigator` exists (browsers). On the server, pass a `Request` or a User-Agent string.
+- When calling without an argument, use it only in environments where `navigator` exists (browsers). On the server, pass a `Request`, `http.IncomingMessage`, or a User-Agent string.
 
 ---
 
