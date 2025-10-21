@@ -1,6 +1,8 @@
 # bun-is-mobile
 
-Lightweight, dependency‑free mobile device detection for Bun and the browser.
+The fastest, lightweight, dependency‑free mobile device detection for Bun and the browser.
+
+It's not much, but it works… 🫠…
 
 ## Overview
 
